@@ -1,4 +1,6 @@
 import { patterns, type Pattern, type InsertPattern } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getPattern(id: number): Promise<Pattern | undefined>;
@@ -8,42 +10,37 @@ export interface IStorage {
   deletePattern(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private patterns: Map<number, Pattern>;
-  private currentId: number;
-
-  constructor() {
-    this.patterns = new Map();
-    this.currentId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getPattern(id: number): Promise<Pattern | undefined> {
-    return this.patterns.get(id);
-  }
-
-  async getAllPatterns(): Promise<Pattern[]> {
-    return Array.from(this.patterns.values());
-  }
-
-  async createPattern(insertPattern: InsertPattern): Promise<Pattern> {
-    const id = this.currentId++;
-    const pattern = { ...insertPattern, id };
-    this.patterns.set(id, pattern);
+    const [pattern] = await db.select().from(patterns).where(eq(patterns.id, id));
     return pattern;
   }
 
+  async getAllPatterns(): Promise<Pattern[]> {
+    return await db.select().from(patterns);
+  }
+
+  async createPattern(pattern: InsertPattern): Promise<Pattern> {
+    const [created] = await db.insert(patterns).values(pattern).returning();
+    return created;
+  }
+
   async updatePattern(id: number, update: Partial<InsertPattern>): Promise<Pattern | undefined> {
-    const existing = await this.getPattern(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...update };
-    this.patterns.set(id, updated);
+    const [updated] = await db
+      .update(patterns)
+      .set(update)
+      .where(eq(patterns.id, id))
+      .returning();
     return updated;
   }
 
   async deletePattern(id: number): Promise<boolean> {
-    return this.patterns.delete(id);
+    const [deleted] = await db
+      .delete(patterns)
+      .where(eq(patterns.id, id))
+      .returning();
+    return !!deleted;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
