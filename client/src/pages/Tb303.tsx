@@ -7,7 +7,7 @@ import Transport from "@/components/synth/Transport";
 import Effects from "@/components/synth/Effects";
 import PatternList from "@/components/synth/PatternList";
 import ReactiveBackground from "@/components/synth/ReactiveBackground";
-import { initAudio, updateParameter, setTempo, updateSequence } from "@/lib/audio";
+import { initAudio, updateParameter, setTempo, updateSequence, stopPlayback } from "@/lib/audio";
 import type { Step, Pattern } from "@shared/schema";
 
 export default function Tb303() {
@@ -38,6 +38,7 @@ export default function Tb303() {
   };
 
   const handleClear = () => {
+    stopPlayback(); // Ensure playback is stopped first
     setSteps(defaultSteps);
     updateSequence(defaultSteps);
   };
