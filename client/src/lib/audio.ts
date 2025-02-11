@@ -4,20 +4,37 @@ import type { Step } from "@shared/schema";
 let synth: Tone.MonoSynth;
 let filter: Tone.Filter;
 let sequence: Tone.Sequence;
+let analyzer: Tone.Analyser;
 let isInitialized = false;
 let envModAmount = 0;
+
+// Add a function to get current audio intensity
+export function getAudioIntensity(): number {
+  if (!analyzer) return 0;
+  const values = analyzer.getValue();
+  // Get average value from the frequency data
+  const sum = (values as Float32Array).reduce((acc, val) => acc + Math.abs(val), 0);
+  return sum / values.length;
+}
 
 export async function initAudio() {
   if (isInitialized) return;
 
   await Tone.start();
 
+  // Create analyzer for intensity detection
+  analyzer = new Tone.Analyser({
+    type: "waveform",
+    size: 64,
+    smoothing: 0.8
+  });
+
   // Create filter first
   filter = new Tone.Filter({
     type: "lowpass",
     frequency: 2000,
     rolloff: -24
-  }).toDestination();
+  });
 
   // Create synth with proper TB-303 settings
   synth = new Tone.MonoSynth({
@@ -41,8 +58,10 @@ export async function initAudio() {
     }
   });
 
-  // Connect synth through filter
+  // Connect synth through filter and analyzer to output
   synth.connect(filter);
+  filter.connect(analyzer);
+  analyzer.toDestination();
 
   // Set initial volume
   Tone.Destination.volume.value = -12;
