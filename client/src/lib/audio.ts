@@ -33,7 +33,7 @@ export async function initAudio() {
 
   // Create effects chain with Royksopp-style processing
   delay = new Tone.FeedbackDelay({
-    delayTime: 0.375, // Triplet feel
+    delayTime: 0.375,
     feedback: 0.4,
     wet: 0.3
   });
@@ -44,11 +44,14 @@ export async function initAudio() {
     preDelay: 0.2
   });
 
+  // Initialize pitchShift with better settings for TB-303 style sounds
   pitchShift = new Tone.PitchShift({
     pitch: 0,
-    windowSize: 0.1,
-    wet: 0.5
-  });
+    windowSize: 0.03, // Smaller window size for faster response
+    delayTime: 0,     // Minimal delay time
+    feedback: 0,      // No feedback to avoid artifacts
+    wet: 1           // Full wet signal for clear pitch shifting
+  }).start();
 
   chorus = new Tone.Chorus({
     frequency: 0.5,
@@ -65,10 +68,10 @@ export async function initAudio() {
     Q: 4
   });
 
-  // Create synth with Royksopp-inspired settings
+  // Create synth with TB-303 inspired settings
   synth = new Tone.MonoSynth({
     oscillator: {
-      type: "square8" // Rich harmonics for that warm analog sound
+      type: "sawtooth"
     },
     envelope: {
       attack: 0.005,
@@ -87,8 +90,8 @@ export async function initAudio() {
     }
   });
 
-  // Connect the audio chain with new effects
-  synth.chain(filter, chorus, pitchShift, delay, reverb, analyzer, Tone.Destination);
+  // Connect the audio chain
+  synth.chain(filter, pitchShift, chorus, delay, reverb, analyzer, Tone.Destination);
 
   // Set initial volume
   Tone.Destination.volume.value = -12;
@@ -134,7 +137,10 @@ export function updateParameter(param: string, value: number) {
       reverb.decay = safeValue * 5;
       break;
     case "pitch":
-      pitchShift.pitch = Math.round((safeValue * 24) - 12);
+      // Modified pitch calculation for more immediate effect
+      // Map 0-1 to -12 to +12 semitones (one octave up/down)
+      const pitchValue = (safeValue * 24) - 12;
+      pitchShift.pitch = pitchValue;
       break;
     case "chorusDepth":
       chorus.depth = safeValue;
