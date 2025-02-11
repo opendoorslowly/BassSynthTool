@@ -41,8 +41,31 @@ export default function Tb303() {
     stopPlayback(); // Ensure playback is stopped first
     setSteps(defaultSteps);
     setTempo(120); // Reset tempo to default
+
+    // Reset all audio parameters to default values
+    updateParameter("cutoff", 0.4);
+    updateParameter("resonance", 0.7);
+    updateParameter("envMod", 0.6);
+    updateParameter("decay", 0.3);
+    updateParameter("accent", 0.5);
+    updateParameter("volume", 0.8);
+
+    // Reset effects parameters
+    updateParameter("delayTime", 0.4);
+    updateParameter("delayFeedback", 0.4);
+    updateParameter("reverbDecay", 0.3);
+    updateParameter("pitch", 0.5);
+    updateParameter("chorusFreq", 0.2);
+    updateParameter("chorusDepth", 0.6);
+
+    // Update sequence with default steps
     updateSequence(defaultSteps);
   };
+
+  useEffect(() => {
+    // Update sequence whenever steps change
+    updateSequence(steps);
+  }, [steps]);
 
   if (!initialized) {
     return (
