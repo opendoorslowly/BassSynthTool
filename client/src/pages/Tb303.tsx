@@ -5,9 +5,10 @@ import Knob from "@/components/synth/Knob";
 import Sequencer from "@/components/synth/Sequencer";
 import Transport from "@/components/synth/Transport";
 import Effects from "@/components/synth/Effects";
+import PatternList from "@/components/synth/PatternList";
 import ReactiveBackground from "@/components/synth/ReactiveBackground";
-import { initAudio, updateParameter } from "@/lib/audio";
-import type { Step } from "@shared/schema";
+import { initAudio, updateParameter, setTempo } from "@/lib/audio";
+import type { Step, Pattern } from "@shared/schema";
 
 export default function Tb303() {
   const [initialized, setInitialized] = useState(false);
@@ -27,6 +28,11 @@ export default function Tb303() {
     } catch (error) {
       console.error("Failed to initialize audio:", error);
     }
+  };
+
+  const handleLoadPattern = (pattern: Pattern) => {
+    setSteps(pattern.steps as Step[]);
+    setTempo(pattern.tempo);
   };
 
   if (!initialized) {
@@ -92,6 +98,10 @@ export default function Tb303() {
 
             <Transport steps={steps} />
             <Sequencer steps={steps} onStepsChange={setSteps} />
+
+            <div className="border-t pt-4">
+              <PatternList onLoad={handleLoadPattern} />
+            </div>
           </div>
         </Card>
       </div>
