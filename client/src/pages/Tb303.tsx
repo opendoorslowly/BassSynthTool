@@ -12,14 +12,13 @@ import type { Step, Pattern } from "@shared/schema";
 
 export default function Tb303() {
   const [initialized, setInitialized] = useState(false);
-  const [steps, setSteps] = useState<Step[]>(
-    Array(16).fill(null).map(() => ({
-      note: "C3",
-      accent: false,
-      slide: false,
-      active: false,
-    }))
-  );
+  const defaultSteps: Step[] = Array(16).fill(null).map(() => ({
+    note: "C3",
+    accent: false,
+    slide: false,
+    active: false,
+  }));
+  const [steps, setSteps] = useState<Step[]>(defaultSteps);
 
   const handleInitialize = async () => {
     try {
@@ -36,6 +35,11 @@ export default function Tb303() {
     setTempo(pattern.tempo);
     // Update the audio sequencer with the loaded pattern
     updateSequence(loadedSteps);
+  };
+
+  const handleClear = () => {
+    setSteps(defaultSteps);
+    updateSequence(defaultSteps);
   };
 
   if (!initialized) {
@@ -99,7 +103,7 @@ export default function Tb303() {
               <Effects />
             </div>
 
-            <Transport steps={steps} />
+            <Transport steps={steps} onClear={handleClear} />
             <Sequencer steps={steps} onStepsChange={setSteps} />
 
             <div className="border-t pt-4">

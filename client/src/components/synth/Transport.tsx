@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Square, Save } from "lucide-react";
+import { Play, Square, Save, RefreshCw } from "lucide-react";
 import { startPlayback, stopPlayback, setTempo } from "@/lib/audio";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,9 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface TransportProps {
   steps: any[];
+  onClear?: () => void;
 }
 
-export default function Transport({ steps }: TransportProps) {
+export default function Transport({ steps, onClear }: TransportProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [tempo, setTempoState] = useState(120);
   const [patternName, setPatternName] = useState("");
@@ -25,6 +26,16 @@ export default function Transport({ steps }: TransportProps) {
     } else {
       startPlayback();
       setIsPlaying(true);
+    }
+  };
+
+  const handleClear = () => {
+    if (isPlaying) {
+      stopPlayback();
+      setIsPlaying(false);
+    }
+    if (onClear) {
+      onClear();
     }
   };
 
@@ -64,6 +75,11 @@ export default function Transport({ steps }: TransportProps) {
     <div className="flex items-center gap-4">
       <Button onClick={handlePlayStop}>
         {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      </Button>
+
+      <Button variant="outline" onClick={handleClear}>
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Clear
       </Button>
 
       <div className="flex items-center gap-2 flex-1">
