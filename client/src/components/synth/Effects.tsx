@@ -1,4 +1,5 @@
 import Knob from "./Knob";
+import { updateParameter } from "@/lib/audio";
 
 export default function Effects() {
   return (

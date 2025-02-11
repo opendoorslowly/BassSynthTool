@@ -28,17 +28,17 @@ export async function initAudio() {
     delayTime: "8n",
     feedback: 0.3,
     wet: 0.2
-  });
+  }).toDestination();
 
   reverb = new Tone.Reverb({
     decay: 2,
     wet: 0.2
-  });
+  }).toDestination();
 
   pitchShift = new Tone.PitchShift({
     pitch: 0,
     wet: 0.5
-  });
+  }).toDestination();
 
   analyzer = new Tone.Analyser({
     type: "waveform",
@@ -73,12 +73,8 @@ export async function initAudio() {
     }
   });
 
-  // Connect the audio chain: synth -> filter -> effects -> analyzer -> output
-  synth.connect(filter);
-  filter.connect(pitchShift);
-  pitchShift.connect(delay);
-  delay.connect(reverb);
-  reverb.connect(analyzer);
+  // Connect the audio chain: synth -> filter -> pitchShift -> delay -> reverb -> analyzer -> output
+  synth.chain(filter, pitchShift, delay, reverb, analyzer);
   analyzer.toDestination();
 
   Tone.Destination.volume.value = -12;
@@ -111,15 +107,15 @@ export function updateParameter(param: string, value: number) {
     case "volume":
       Tone.Destination.volume.value = Math.max(-60, (value * 60) - 60);
       break;
-    // New effect parameters
+    // Effect parameters
     case "delayTime":
-      delay.delayTime.value = value;
+      delay.delayTime.value = value * 0.5; // 0 to 500ms
       break;
     case "delayFeedback":
-      delay.feedback.value = value;
+      delay.feedback.value = value * 0.9; // 0 to 0.9 to avoid infinite feedback
       break;
     case "reverbDecay":
-      reverb.decay = value * 10; // 0-10 seconds
+      reverb.decay = value * 5; // 0 to 5 seconds
       break;
     case "pitch":
       pitchShift.pitch = Math.round((value * 24) - 12); // -12 to +12 semitones
