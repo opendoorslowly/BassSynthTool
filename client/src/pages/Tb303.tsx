@@ -44,27 +44,27 @@ export default function Tb303() {
             <Knob 
               label="Cutoff"
               onChange={(v) => updateParameter("cutoff", v)}
-              defaultValue={0.5}
+              defaultValue={0.4}
             />
             <Knob
               label="Resonance"
               onChange={(v) => updateParameter("resonance", v)}
-              defaultValue={0.3}
+              defaultValue={0.7}
             />
             <Knob
               label="Env Mod"
               onChange={(v) => updateParameter("envMod", v)}
-              defaultValue={0.5}
+              defaultValue={0.6}
             />
             <Knob
               label="Decay"
               onChange={(v) => updateParameter("decay", v)}
-              defaultValue={0.6}
+              defaultValue={0.3}
             />
             <Knob
               label="Accent"
               onChange={(v) => updateParameter("accent", v)}
-              defaultValue={0.7}
+              defaultValue={0.5}
             />
             <Knob
               label="Volume"
