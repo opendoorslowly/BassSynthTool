@@ -8,6 +8,7 @@ let analyzer: Tone.Analyser;
 let delay: Tone.FeedbackDelay;
 let reverb: Tone.Reverb;
 let pitchShift: Tone.PitchShift;
+let chorus: Tone.Chorus;
 let isInitialized = false;
 let envModAmount = 0;
 
@@ -30,17 +31,17 @@ export async function initAudio() {
     smoothing: 0.8
   });
 
-  // Create effects chain
+  // Create effects chain with Royksopp-style processing
   delay = new Tone.FeedbackDelay({
-    delayTime: 0.25,
-    feedback: 0.3,
-    wet: 0.2
+    delayTime: 0.375, // Triplet feel
+    feedback: 0.4,
+    wet: 0.3
   });
 
   reverb = new Tone.Reverb({
-    decay: 2,
-    wet: 0.2,
-    preDelay: 0.1
+    decay: 3,
+    wet: 0.25,
+    preDelay: 0.2
   });
 
   pitchShift = new Tone.PitchShift({
@@ -49,37 +50,45 @@ export async function initAudio() {
     wet: 0.5
   });
 
-  // Create filter
+  chorus = new Tone.Chorus({
+    frequency: 0.5,
+    delayTime: 3.5,
+    depth: 0.7,
+    wet: 0.3
+  }).start();
+
+  // Create filter with more resonance for that classic analog sound
   filter = new Tone.Filter({
     type: "lowpass",
     frequency: 2000,
-    rolloff: -24
+    rolloff: -24,
+    Q: 4
   });
 
-  // Create synth
+  // Create synth with Royksopp-inspired settings
   synth = new Tone.MonoSynth({
     oscillator: {
-      type: "sawtooth"
+      type: "square8" // Rich harmonics for that warm analog sound
     },
     envelope: {
-      attack: 0.001,
+      attack: 0.005,
       decay: 0.2,
-      sustain: 0,
-      release: 0.1
+      sustain: 0.2,
+      release: 0.4
     },
     filterEnvelope: {
-      attack: 0.001,
-      decay: 0.2,
-      sustain: 0,
-      release: 0.1,
-      baseFrequency: 2000,
+      attack: 0.005,
+      decay: 0.4,
+      sustain: 0.2,
+      release: 0.4,
+      baseFrequency: 1000,
       octaves: 4,
       exponent: 2
     }
   });
 
-  // Connect the audio chain
-  synth.chain(filter, pitchShift, delay, reverb, analyzer, Tone.Destination);
+  // Connect the audio chain with new effects
+  synth.chain(filter, chorus, pitchShift, delay, reverb, analyzer, Tone.Destination);
 
   // Set initial volume
   Tone.Destination.volume.value = -12;
@@ -114,16 +123,22 @@ export function updateParameter(param: string, value: number) {
       break;
     // Effect parameters
     case "delayTime":
-      delay.delayTime.value = value * 0.5; // 0 to 500ms
+      delay.delayTime.value = value * 0.75; // 0 to 750ms
       break;
     case "delayFeedback":
-      delay.feedback.value = value * 0.9; // 0 to 0.9 to avoid infinite feedback
+      delay.feedback.value = value * 0.85; // 0 to 0.85 to avoid infinite feedback
       break;
     case "reverbDecay":
       reverb.decay = value * 5; // 0 to 5 seconds
       break;
     case "pitch":
       pitchShift.pitch = Math.round((value * 24) - 12); // -12 to +12 semitones
+      break;
+    case "chorusDepth":
+      chorus.depth = value;
+      break;
+    case "chorusFreq":
+      chorus.frequency.value = value * 4; // 0 to 4 Hz
       break;
   }
 }
