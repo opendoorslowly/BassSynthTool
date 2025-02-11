@@ -30,42 +30,58 @@ export default function Tb303() {
   };
 
   const handleLoadPattern = (pattern: Pattern) => {
-    const loadedSteps = pattern.steps as Step[];
-    setSteps(loadedSteps);
-    setTempo(pattern.tempo);
-    // Update the audio sequencer with the loaded pattern
-    updateSequence(loadedSteps);
+    try {
+      stopPlayback();
+      const loadedSteps = pattern.steps as Step[];
+      setSteps(loadedSteps);
+      setTempo(pattern.tempo);
+      // Update the audio sequencer with the loaded pattern
+      updateSequence(loadedSteps);
+    } catch (error) {
+      console.error("Error loading pattern:", error);
+    }
   };
 
   const handleClear = () => {
-    stopPlayback(); // Ensure playback is stopped first
-    setSteps(defaultSteps);
-    setTempo(120); // Reset tempo to default
+    try {
+      stopPlayback(); // Ensure playback is stopped first
+      setSteps(defaultSteps);
+      setTempo(120); // Reset tempo to default
 
-    // Reset all audio parameters to default values
-    updateParameter("cutoff", 0.4);
-    updateParameter("resonance", 0.7);
-    updateParameter("envMod", 0.6);
-    updateParameter("decay", 0.3);
-    updateParameter("accent", 0.5);
-    updateParameter("volume", 0.8);
+      // Reset all audio parameters to default values with safe values
+      const defaultParams = {
+        cutoff: 0.4,
+        resonance: 0.7,
+        envMod: 0.6,
+        decay: 0.3,
+        accent: 0.5,
+        volume: 0.8,
+        delayTime: 0.4,
+        delayFeedback: 0.4,
+        reverbDecay: 0.3,
+        pitch: 0.5,
+        chorusFreq: 0.2,
+        chorusDepth: 0.6
+      };
 
-    // Reset effects parameters
-    updateParameter("delayTime", 0.4);
-    updateParameter("delayFeedback", 0.4);
-    updateParameter("reverbDecay", 0.3);
-    updateParameter("pitch", 0.5);
-    updateParameter("chorusFreq", 0.2);
-    updateParameter("chorusDepth", 0.6);
+      // Update parameters safely
+      Object.entries(defaultParams).forEach(([param, value]) => {
+        updateParameter(param, value);
+      });
 
-    // Update sequence with default steps
-    updateSequence(defaultSteps);
+      // Update sequence with default steps
+      updateSequence(defaultSteps);
+    } catch (error) {
+      console.error("Error clearing pattern:", error);
+    }
   };
 
   useEffect(() => {
     // Update sequence whenever steps change
-    updateSequence(steps);
-  }, [steps]);
+    if (initialized) {
+      updateSequence(steps);
+    }
+  }, [steps, initialized]);
 
   if (!initialized) {
     return (

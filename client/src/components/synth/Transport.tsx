@@ -20,30 +20,43 @@ export default function Transport({ steps, onClear }: TransportProps) {
   const { toast } = useToast();
 
   const handlePlayStop = () => {
-    if (isPlaying) {
-      stopPlayback();
+    try {
+      if (isPlaying) {
+        stopPlayback();
+        setIsPlaying(false);
+      } else {
+        startPlayback();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error("Error toggling playback:", error);
       setIsPlaying(false);
-    } else {
-      startPlayback();
-      setIsPlaying(true);
     }
   };
 
   const handleClear = () => {
-    if (isPlaying) {
-      stopPlayback();
-      setIsPlaying(false);
-    }
-    setTempoState(120); // Reset tempo to default
-    if (onClear) {
-      onClear();
+    try {
+      if (isPlaying) {
+        stopPlayback();
+        setIsPlaying(false);
+      }
+      setTempoState(120); // Reset tempo to default
+      if (onClear) {
+        onClear();
+      }
+    } catch (error) {
+      console.error("Error clearing:", error);
     }
   };
 
   const handleTempoChange = (value: number[]) => {
-    const newTempo = value[0];
-    setTempoState(newTempo);
-    setTempo(newTempo);
+    try {
+      const newTempo = value[0];
+      setTempoState(newTempo);
+      setTempo(newTempo);
+    } catch (error) {
+      console.error("Error changing tempo:", error);
+    }
   };
 
   useEffect(() => {

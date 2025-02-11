@@ -98,47 +98,49 @@ export async function initAudio() {
 export function updateParameter(param: string, value: number) {
   if (!isInitialized) return;
 
+  // Ensure value is within valid range
+  const safeValue = Math.max(0, Math.min(1, value));
+
   switch (param) {
     case "cutoff":
-      const cutoffFreq = Math.pow(2, value * 10) * 20;
+      const cutoffFreq = Math.pow(2, safeValue * 10) * 20;
       filter.frequency.value = Math.min(20000, Math.max(20, cutoffFreq));
       break;
     case "resonance":
-      filter.Q.value = Math.pow(value, 2) * 30;
+      filter.Q.value = Math.pow(safeValue, 2) * 30;
       break;
     case "envMod":
-      envModAmount = value * 4;
+      envModAmount = safeValue * 4;
       synth.filterEnvelope.octaves = envModAmount;
       break;
     case "decay":
-      const decayTime = 0.05 + (value * 0.95);
+      const decayTime = 0.05 + (safeValue * 0.95);
       synth.envelope.decay = decayTime;
       synth.filterEnvelope.decay = decayTime;
       break;
     case "accent":
-      synth.volume.value = Math.max(-20, value * 20 - 10);
+      synth.volume.value = Math.max(-20, safeValue * 20 - 10);
       break;
     case "volume":
-      Tone.Destination.volume.value = Math.max(-60, (value * 60) - 60);
+      Tone.Destination.volume.value = Math.max(-60, (safeValue * 60) - 60);
       break;
-    // Effect parameters
     case "delayTime":
-      delay.delayTime.value = value * 0.75; // 0 to 750ms
+      delay.delayTime.value = safeValue * 0.75;
       break;
     case "delayFeedback":
-      delay.feedback.value = value * 0.85; // 0 to 0.85 to avoid infinite feedback
+      delay.feedback.value = safeValue * 0.85;
       break;
     case "reverbDecay":
-      reverb.decay = value * 5; // 0 to 5 seconds
+      reverb.decay = safeValue * 5;
       break;
     case "pitch":
-      pitchShift.pitch = Math.round((value * 24) - 12); // -12 to +12 semitones
+      pitchShift.pitch = Math.round((safeValue * 24) - 12);
       break;
     case "chorusDepth":
-      chorus.depth = value;
+      chorus.depth = safeValue;
       break;
     case "chorusFreq":
-      chorus.frequency.value = value * 4; // 0 to 4 Hz
+      chorus.frequency.value = safeValue * 4;
       break;
   }
 }
@@ -146,32 +148,36 @@ export function updateParameter(param: string, value: number) {
 export function updateSequence(steps: Step[]) {
   if (!isInitialized) return;
 
-  if (sequence) {
-    sequence.stop();
-    sequence.dispose();
-  }
+  try {
+    if (sequence) {
+      sequence.stop();
+      sequence.dispose();
+    }
 
-  sequence = new Tone.Sequence(
-    (time, step: Step) => {
-      if (step?.active) {
+    sequence = new Tone.Sequence(
+      (time, step: Step) => {
+        if (!step?.active) return;
+
         const velocity = step.accent ? 1 : 0.7;
 
         if (step.accent) {
-          synth.filterEnvelope.octaves = envModAmount * 1.5;
+          synth.filterEnvelope.octaves = Math.max(0, envModAmount * 1.5);
         } else {
-          synth.filterEnvelope.octaves = envModAmount;
+          synth.filterEnvelope.octaves = Math.max(0, envModAmount);
         }
 
         const noteLength = step.slide ? "8n" : "16n";
         synth.triggerAttackRelease(step.note, noteLength, time, velocity);
-      }
-    },
-    steps,
-    "16n"
-  );
+      },
+      steps,
+      "16n"
+    );
 
-  if (Tone.Transport.state === "started") {
-    sequence.start(0);
+    if (Tone.Transport.state === "started") {
+      sequence.start(0);
+    }
+  } catch (error) {
+    console.error("Error updating sequence:", error);
   }
 }
 
@@ -183,11 +189,24 @@ export function startPlayback() {
 
 export function stopPlayback() {
   if (!isInitialized) return;
-  Tone.Transport.stop();
-  sequence?.stop();
+  try {
+    Tone.Transport.stop();
+    if (sequence) {
+      sequence.stop();
+      sequence.dispose();
+      sequence = null;
+    }
+  } catch (error) {
+    console.error("Error stopping playback:", error);
+  }
 }
 
 export function setTempo(bpm: number) {
   if (!isInitialized) return;
-  Tone.Transport.bpm.value = Math.max(20, Math.min(300, bpm));
+  try {
+    const safeBpm = Math.max(20, Math.min(300, bpm));
+    Tone.Transport.bpm.value = safeBpm;
+  } catch (error) {
+    console.error("Error setting tempo:", error);
+  }
 }
