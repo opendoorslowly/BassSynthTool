@@ -23,35 +23,40 @@ export async function initAudio() {
 
   await Tone.start();
 
-  // Create effects
-  delay = new Tone.FeedbackDelay({
-    delayTime: "8n",
-    feedback: 0.3,
-    wet: 0.2
-  }).toDestination();
-
-  reverb = new Tone.Reverb({
-    decay: 2,
-    wet: 0.2
-  }).toDestination();
-
-  pitchShift = new Tone.PitchShift({
-    pitch: 0,
-    wet: 0.5
-  }).toDestination();
-
+  // Create analyzer for visualization
   analyzer = new Tone.Analyser({
     type: "waveform",
     size: 64,
     smoothing: 0.8
   });
 
+  // Create effects chain
+  delay = new Tone.FeedbackDelay({
+    delayTime: 0.25,
+    feedback: 0.3,
+    wet: 0.2
+  });
+
+  reverb = new Tone.Reverb({
+    decay: 2,
+    wet: 0.2,
+    preDelay: 0.1
+  });
+
+  pitchShift = new Tone.PitchShift({
+    pitch: 0,
+    windowSize: 0.1,
+    wet: 0.5
+  });
+
+  // Create filter
   filter = new Tone.Filter({
     type: "lowpass",
     frequency: 2000,
     rolloff: -24
   });
 
+  // Create synth
   synth = new Tone.MonoSynth({
     oscillator: {
       type: "sawtooth"
@@ -73,10 +78,10 @@ export async function initAudio() {
     }
   });
 
-  // Connect the audio chain: synth -> filter -> pitchShift -> delay -> reverb -> analyzer -> output
-  synth.chain(filter, pitchShift, delay, reverb, analyzer);
-  analyzer.toDestination();
+  // Connect the audio chain
+  synth.chain(filter, pitchShift, delay, reverb, analyzer, Tone.Destination);
 
+  // Set initial volume
   Tone.Destination.volume.value = -12;
   isInitialized = true;
 }
