@@ -7,9 +7,18 @@ import Transport from "@/components/synth/Transport";
 import Effects from "@/components/synth/Effects";
 import ReactiveBackground from "@/components/synth/ReactiveBackground";
 import { initAudio, updateParameter } from "@/lib/audio";
+import type { Step } from "@shared/schema";
 
 export default function Tb303() {
   const [initialized, setInitialized] = useState(false);
+  const [steps, setSteps] = useState<Step[]>(
+    Array(16).fill(null).map(() => ({
+      note: "C3",
+      accent: false,
+      slide: false,
+      active: false,
+    }))
+  );
 
   const handleInitialize = async () => {
     try {
@@ -81,8 +90,8 @@ export default function Tb303() {
               <Effects />
             </div>
 
-            <Transport />
-            <Sequencer />
+            <Transport steps={steps} />
+            <Sequencer steps={steps} onStepsChange={setSteps} />
           </div>
         </Card>
       </div>

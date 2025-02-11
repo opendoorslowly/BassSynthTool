@@ -10,23 +10,19 @@ const NOTES = [
   "C4"
 ];
 
-export default function Sequencer() {
-  const [steps, setSteps] = useState<Step[]>(
-    Array(16).fill(null).map(() => ({
-      note: "C3",
-      accent: false,
-      slide: false,
-      active: false,
-    }))
-  );
+interface SequencerProps {
+  steps: Step[];
+  onStepsChange: (steps: Step[]) => void;
+}
 
+export default function Sequencer({ steps, onStepsChange }: SequencerProps) {
   const toggleStep = (index: number) => {
     const newSteps = [...steps];
     newSteps[index] = {
       ...newSteps[index],
       active: !newSteps[index].active,
     };
-    setSteps(newSteps);
+    onStepsChange(newSteps);
     updateSequence(newSteps);
   };
 
@@ -36,7 +32,7 @@ export default function Sequencer() {
       ...newSteps[index],
       note,
     };
-    setSteps(newSteps);
+    onStepsChange(newSteps);
     updateSequence(newSteps);
   };
 
