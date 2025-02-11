@@ -7,7 +7,7 @@ import Transport from "@/components/synth/Transport";
 import Effects from "@/components/synth/Effects";
 import PatternList from "@/components/synth/PatternList";
 import ReactiveBackground from "@/components/synth/ReactiveBackground";
-import { initAudio, updateParameter, setTempo } from "@/lib/audio";
+import { initAudio, updateParameter, setTempo, updateSequence } from "@/lib/audio";
 import type { Step, Pattern } from "@shared/schema";
 
 export default function Tb303() {
@@ -31,8 +31,11 @@ export default function Tb303() {
   };
 
   const handleLoadPattern = (pattern: Pattern) => {
-    setSteps(pattern.steps as Step[]);
+    const loadedSteps = pattern.steps as Step[];
+    setSteps(loadedSteps);
     setTempo(pattern.tempo);
+    // Update the audio sequencer with the loaded pattern
+    updateSequence(loadedSteps);
   };
 
   if (!initialized) {
