@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Step } from "@shared/schema";
 import { updateSequence } from "@/lib/audio";
 
-const NOTES = ["C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4"];
+// Expanded note range covering 2 octaves
+const NOTES = [
+  "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2",
+  "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3",
+  "C4"
+];
 
 export default function Sequencer() {
   const [steps, setSteps] = useState<Step[]>(
@@ -40,7 +45,7 @@ export default function Sequencer() {
       {steps.map((step, i) => (
         <div key={i} className="flex flex-col gap-1">
           <select
-            className="w-full p-1 text-xs"
+            className="w-full p-1 text-xs bg-white/90 rounded-sm"
             value={step.note}
             onChange={(e) => updateNote(i, e.target.value)}
           >

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Knob from "@/components/synth/Knob";
 import Sequencer from "@/components/synth/Sequencer";
 import Transport from "@/components/synth/Transport";
+import Effects from "@/components/synth/Effects";
 import ReactiveBackground from "@/components/synth/ReactiveBackground";
 import { initAudio, updateParameter } from "@/lib/audio";
 
@@ -73,6 +74,11 @@ export default function Tb303() {
                 onChange={(v) => updateParameter("volume", v)}
                 defaultValue={0.8}
               />
+            </div>
+
+            <div className="border-t pt-4">
+              <h2 className="text-lg font-semibold mb-4">Effects</h2>
+              <Effects />
             </div>
 
             <Transport />
