@@ -3,7 +3,7 @@ import type { Step } from "@shared/schema";
 
 let synth: Tone.MonoSynth;
 let filter: Tone.Filter;
-let sequence: Tone.Sequence;
+let sequence: Tone.Sequence<any>;
 let analyzer: Tone.Analyser;
 let delay: Tone.FeedbackDelay;
 let reverb: Tone.Reverb;
@@ -22,80 +22,94 @@ export function getAudioIntensity(): number {
 export async function initAudio() {
   if (isInitialized) return;
 
-  await Tone.start();
+  try {
+    await Tone.start();
+    console.log("Tone.js initialized successfully");
 
-  // Create analyzer for visualization
-  analyzer = new Tone.Analyser({
-    type: "waveform",
-    size: 64,
-    smoothing: 0.8
-  });
+    // Create analyzer for visualization
+    analyzer = new Tone.Analyser({
+      type: "waveform",
+      size: 64,
+      smoothing: 0.8
+    });
 
-  // Create effects chain with Royksopp-style processing
-  delay = new Tone.FeedbackDelay({
-    delayTime: 0.375,
-    feedback: 0.4,
-    wet: 0.3
-  });
+    // Create effects chain
+    delay = new Tone.FeedbackDelay({
+      delayTime: 0.375,
+      feedback: 0.4,
+      wet: 0.3
+    }).toDestination();
 
-  reverb = new Tone.Reverb({
-    decay: 3,
-    wet: 0.25,
-    preDelay: 0.2
-  });
+    reverb = new Tone.Reverb({
+      decay: 3,
+      wet: 0.25,
+      preDelay: 0.2
+    }).toDestination();
 
-  // Initialize pitchShift with better settings for TB-303 style sounds
-  pitchShift = new Tone.PitchShift({
-    pitch: 0,
-    windowSize: 0.03, // Smaller window size for faster response
-    delayTime: 0,     // Minimal delay time
-    feedback: 0,      // No feedback to avoid artifacts
-    wet: 1           // Full wet signal for clear pitch shifting
-  }).start();
+    pitchShift = new Tone.PitchShift({
+      pitch: 0,
+      windowSize: 0.03,
+      delayTime: 0,
+      feedback: 0,
+      wet: 1
+    }).toDestination();
 
-  chorus = new Tone.Chorus({
-    frequency: 0.5,
-    delayTime: 3.5,
-    depth: 0.7,
-    wet: 0.3
-  }).start();
+    chorus = new Tone.Chorus({
+      frequency: 0.5,
+      delayTime: 3.5,
+      depth: 0.7,
+      wet: 0.3
+    }).toDestination();
 
-  // Create filter with more resonance for that classic analog sound
-  filter = new Tone.Filter({
-    type: "lowpass",
-    frequency: 2000,
-    rolloff: -24,
-    Q: 4
-  });
+    // Create filter
+    filter = new Tone.Filter({
+      type: "lowpass",
+      frequency: 2000,
+      rolloff: -24,
+      Q: 4
+    }).toDestination();
 
-  // Create synth with TB-303 inspired settings
-  synth = new Tone.MonoSynth({
-    oscillator: {
-      type: "sawtooth"
-    },
-    envelope: {
-      attack: 0.005,
-      decay: 0.2,
-      sustain: 0.2,
-      release: 0.4
-    },
-    filterEnvelope: {
-      attack: 0.005,
-      decay: 0.4,
-      sustain: 0.2,
-      release: 0.4,
-      baseFrequency: 1000,
-      octaves: 4,
-      exponent: 2
-    }
-  });
+    // Create synth
+    synth = new Tone.MonoSynth({
+      oscillator: {
+        type: "sawtooth"
+      },
+      envelope: {
+        attack: 0.005,
+        decay: 0.2,
+        sustain: 0.2,
+        release: 0.4
+      },
+      filterEnvelope: {
+        attack: 0.005,
+        decay: 0.4,
+        sustain: 0.2,
+        release: 0.4,
+        baseFrequency: 1000,
+        octaves: 4,
+        exponent: 2
+      }
+    }).toDestination();
 
-  // Connect the audio chain
-  synth.chain(filter, pitchShift, chorus, delay, reverb, analyzer, Tone.Destination);
+    // Connect the audio chain
+    synth.chain(
+      filter,
+      pitchShift,
+      chorus,
+      delay,
+      reverb,
+      analyzer,
+      Tone.Destination
+    );
 
-  // Set initial volume
-  Tone.Destination.volume.value = -12;
-  isInitialized = true;
+    // Set initial volume
+    Tone.Destination.volume.value = -12;
+    isInitialized = true;
+    console.log("Audio chain initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize audio:", error);
+    throw error;
+  }
 }
 
 export function updateParameter(param: string, value: number) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import Knob from "@/components/synth/Knob";
 import Sequencer from "@/components/synth/Sequencer";
 import Transport from "@/components/synth/Transport";
@@ -9,23 +10,42 @@ import PatternList from "@/components/synth/PatternList";
 import ReactiveBackground from "@/components/synth/ReactiveBackground";
 import { initAudio, updateParameter, setTempo, updateSequence, stopPlayback } from "@/lib/audio";
 import type { Step, Pattern } from "@shared/schema";
+import { Loader2 } from "lucide-react";
 
 export default function Tb303() {
   const [initialized, setInitialized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const { toast } = useToast();
+
   const defaultSteps: Step[] = Array(16).fill(null).map(() => ({
     note: "C3",
     accent: false,
     slide: false,
     active: false,
   }));
+
   const [steps, setSteps] = useState<Step[]>(defaultSteps);
 
   const handleInitialize = async () => {
+    if (isInitializing) return;
+
+    setIsInitializing(true);
     try {
       await initAudio();
       setInitialized(true);
+      toast({
+        title: "Ready to play",
+        description: "Audio engine initialized successfully",
+      });
     } catch (error) {
       console.error("Failed to initialize audio:", error);
+      toast({
+        title: "Initialization failed",
+        description: "Please refresh the page and try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -35,7 +55,6 @@ export default function Tb303() {
       const loadedSteps = pattern.steps as Step[];
       setSteps(loadedSteps);
       setTempo(pattern.tempo);
-      // Update the audio sequencer with the loaded pattern
       updateSequence(loadedSteps);
     } catch (error) {
       console.error("Error loading pattern:", error);
@@ -44,11 +63,10 @@ export default function Tb303() {
 
   const handleClear = () => {
     try {
-      stopPlayback(); // Ensure playback is stopped first
+      stopPlayback(); 
       setSteps(defaultSteps);
-      setTempo(120); // Reset tempo to default
+      setTempo(120); 
 
-      // Reset all audio parameters to default values with safe values
       const defaultParams = {
         cutoff: 0.4,
         resonance: 0.7,
@@ -64,12 +82,10 @@ export default function Tb303() {
         chorusDepth: 0.6
       };
 
-      // Update parameters safely
       Object.entries(defaultParams).forEach(([param, value]) => {
         updateParameter(param, value);
       });
 
-      // Update sequence with default steps
       updateSequence(defaultSteps);
     } catch (error) {
       console.error("Error clearing pattern:", error);
@@ -77,7 +93,6 @@ export default function Tb303() {
   };
 
   useEffect(() => {
-    // Update sequence whenever steps change
     if (initialized) {
       updateSequence(steps);
     }
@@ -89,8 +104,19 @@ export default function Tb303() {
         <Card className="p-6 text-center">
           <h2 className="text-xl font-bold mb-4">TB-303 Bass Synthesizer</h2>
           <p className="mb-4 text-gray-600">Click the button below to start the audio engine</p>
-          <Button onClick={handleInitialize} size="lg">
-            Initialize Audio
+          <Button 
+            onClick={handleInitialize} 
+            size="lg"
+            disabled={isInitializing}
+          >
+            {isInitializing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Initializing...
+              </>
+            ) : (
+              "Initialize Audio"
+            )}
           </Button>
         </Card>
       </div>
