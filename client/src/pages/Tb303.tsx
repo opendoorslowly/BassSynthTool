@@ -40,6 +40,7 @@ export default function Tb303() {
   const handleClear = () => {
     stopPlayback(); // Ensure playback is stopped first
     setSteps(defaultSteps);
+    setTempo(120); // Reset tempo to default
     updateSequence(defaultSteps);
   };
 

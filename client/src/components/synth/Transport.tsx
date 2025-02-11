@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Play, Square, Save, RefreshCw } from "lucide-react";
 import { startPlayback, stopPlayback, setTempo } from "@/lib/audio";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { saveSequencerAsPattern } from "@/lib/patterns";
@@ -34,6 +34,7 @@ export default function Transport({ steps, onClear }: TransportProps) {
       stopPlayback();
       setIsPlaying(false);
     }
+    setTempoState(120); // Reset tempo to default
     if (onClear) {
       onClear();
     }
@@ -44,6 +45,13 @@ export default function Transport({ steps, onClear }: TransportProps) {
     setTempoState(newTempo);
     setTempo(newTempo);
   };
+
+  useEffect(() => {
+    // Reset tempo slider when cleared
+    if (!isPlaying) {
+      setTempo(tempo);
+    }
+  }, [tempo, isPlaying]);
 
   const handleSave = async () => {
     if (!patternName) {
