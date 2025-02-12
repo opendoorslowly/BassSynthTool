@@ -45,13 +45,14 @@ export async function initAudio() {
       wet: 0.2
     });
 
+    // Initialize pitchShift with better settings for TB-303 style sounds
     pitchShift = new Tone.PitchShift({
       pitch: 0,
       windowSize: 0.02,
-      delayTime: 0,
+      delayTime: 0.001,     // Minimum safe delay time
       feedback: 0,
       wet: 1
-    });
+    }).start();
 
     chorus = new Tone.Chorus({
       frequency: 1.5,
@@ -133,7 +134,7 @@ export function updateParameter(param: string, value: number) {
       break;
     case "decay":
       // TB-303 style decay
-      const decayTime = 0.02 + (safeValue * 0.3);
+      const decayTime = Math.max(0.001, 0.02 + (safeValue * 0.3));
       synth.envelope.decay = decayTime;
       synth.filterEnvelope.decay = decayTime;
       break;
@@ -145,7 +146,7 @@ export function updateParameter(param: string, value: number) {
       Tone.Destination.volume.value = Math.max(-60, (safeValue * 60) - 60);
       break;
     case "delayTime":
-      delay.delayTime.value = safeValue * 0.75;
+      delay.delayTime.value = Math.max(0.001, safeValue * 0.75);
       break;
     case "delayFeedback":
       delay.feedback.value = safeValue * 0.85;
