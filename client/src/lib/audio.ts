@@ -33,7 +33,7 @@ export async function initAudio() {
       smoothing: 0.8
     });
 
-    // Create effects chain
+    // TB-303 style effects chain
     delay = new Tone.FeedbackDelay({
       delayTime: 0.375,
       feedback: 0.4,
@@ -41,52 +41,51 @@ export async function initAudio() {
     }).toDestination();
 
     reverb = new Tone.Reverb({
-      decay: 3,
-      wet: 0.25,
-      preDelay: 0.2
+      decay: 2,
+      wet: 0.2
     }).toDestination();
 
     pitchShift = new Tone.PitchShift({
       pitch: 0,
-      windowSize: 0.03,
+      windowSize: 0.02,
       delayTime: 0,
       feedback: 0,
       wet: 1
     }).toDestination();
 
     chorus = new Tone.Chorus({
-      frequency: 0.5,
-      delayTime: 3.5,
-      depth: 0.7,
-      wet: 0.3
+      frequency: 1.5,
+      delayTime: 2.5,
+      depth: 0.5,
+      wet: 0.2
     }).toDestination();
 
-    // Create filter
+    // TB-303 style filter
     filter = new Tone.Filter({
       type: "lowpass",
-      frequency: 2000,
+      frequency: 350, // Start with low cutoff
       rolloff: -24,
-      Q: 4
+      Q: 12 // High resonance characteristic of the 303
     }).toDestination();
 
-    // Create synth
+    // TB-303 style monosynth
     synth = new Tone.MonoSynth({
       oscillator: {
         type: "sawtooth"
       },
       envelope: {
-        attack: 0.005,
-        decay: 0.2,
-        sustain: 0.2,
-        release: 0.4
+        attack: 0.003, // Super fast attack
+        decay: 0.1,
+        sustain: 0.3,
+        release: 0.1
       },
       filterEnvelope: {
-        attack: 0.005,
-        decay: 0.4,
-        sustain: 0.2,
-        release: 0.4,
-        baseFrequency: 1000,
-        octaves: 4,
+        attack: 0.002,
+        decay: 0.1,
+        sustain: 0.1,
+        release: 0.1,
+        baseFrequency: 350,
+        octaves: 7, // Wide filter sweep
         exponent: 2
       }
     }).toDestination();
@@ -115,32 +114,37 @@ export async function initAudio() {
 export function updateParameter(param: string, value: number) {
   if (!isInitialized) return;
 
-  // Ensure value is within valid range
   const safeValue = Math.max(0, Math.min(1, value));
 
   switch (param) {
     case "cutoff":
-      const cutoffFreq = Math.pow(2, safeValue * 10) * 20;
-      filter.frequency.value = Math.min(20000, Math.max(20, cutoffFreq));
+      // TB-303 style cutoff mapping (exponential)
+      const cutoffFreq = Math.pow(2, safeValue * 12) * 100;
+      filter.frequency.value = Math.min(12000, Math.max(20, cutoffFreq));
       break;
     case "resonance":
-      filter.Q.value = Math.pow(safeValue, 2) * 30;
+      // TB-303 style resonance (more aggressive)
+      filter.Q.value = Math.pow(safeValue, 2) * 25;
       break;
     case "envMod":
-      envModAmount = safeValue * 4;
+      // TB-303 style envelope modulation (wider range)
+      envModAmount = safeValue * 7;
       synth.filterEnvelope.octaves = envModAmount;
       break;
     case "decay":
-      const decayTime = 0.05 + (safeValue * 0.95);
+      // TB-303 style decay (shorter range for snappier response)
+      const decayTime = 0.02 + (safeValue * 0.3);
       synth.envelope.decay = decayTime;
       synth.filterEnvelope.decay = decayTime;
       break;
     case "accent":
-      synth.volume.value = Math.max(-20, safeValue * 20 - 10);
+      // TB-303 style accent (more dramatic)
+      synth.volume.value = Math.max(-20, safeValue * 25 - 15);
       break;
     case "volume":
       Tone.Destination.volume.value = Math.max(-60, (safeValue * 60) - 60);
       break;
+    // Effect parameters remain the same
     case "delayTime":
       delay.delayTime.value = safeValue * 0.75;
       break;
@@ -151,8 +155,6 @@ export function updateParameter(param: string, value: number) {
       reverb.decay = safeValue * 5;
       break;
     case "pitch":
-      // Modified pitch calculation for more immediate effect
-      // Map 0-1 to -12 to +12 semitones (one octave up/down)
       const pitchValue = (safeValue * 24) - 12;
       pitchShift.pitch = pitchValue;
       break;
@@ -178,14 +180,19 @@ export function updateSequence(steps: Step[]) {
       (time, step: Step) => {
         if (!step?.active) return;
 
+        // TB-303 style velocity and accent handling
         const velocity = step.accent ? 1 : 0.7;
 
         if (step.accent) {
-          synth.filterEnvelope.octaves = Math.max(0, envModAmount * 1.5);
+          // Increase filter envelope amount for accented notes
+          synth.filterEnvelope.octaves = Math.max(0, envModAmount * 2);
+          synth.envelope.decay = 0.2; // Longer decay for accented notes
         } else {
           synth.filterEnvelope.octaves = Math.max(0, envModAmount);
+          synth.envelope.decay = 0.1; // Normal decay
         }
 
+        // TB-303 style slide timing
         const noteLength = step.slide ? "8n" : "16n";
         synth.triggerAttackRelease(step.note, noteLength, time, velocity);
       },
