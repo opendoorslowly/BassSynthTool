@@ -52,7 +52,7 @@ export async function initAudio() {
       delayTime: 0.001,     // Minimum safe delay time
       feedback: 0,
       wet: 1
-    }).start();
+    });
 
     chorus = new Tone.Chorus({
       frequency: 1.5,
@@ -207,13 +207,19 @@ export function updateSequence(steps: Step[]) {
     }
   } catch (error) {
     console.error("Error updating sequence:", error);
+    throw error;
   }
 }
 
 export function startPlayback() {
   if (!isInitialized) return;
-  Tone.Transport.start();
-  sequence?.start(0);
+  try {
+    Tone.Transport.start();
+    sequence?.start(0);
+  } catch (error) {
+    console.error("Error starting playback:", error);
+    throw error;
+  }
 }
 
 export function stopPlayback() {
@@ -223,6 +229,7 @@ export function stopPlayback() {
     sequence?.stop();
   } catch (error) {
     console.error("Error stopping playback:", error);
+    throw error;
   }
 }
 
@@ -233,5 +240,6 @@ export function setTempo(bpm: number) {
     Tone.Transport.bpm.value = safeBpm;
   } catch (error) {
     console.error("Error setting tempo:", error);
+    throw error;
   }
 }

@@ -11,6 +11,7 @@ import ReactiveBackground from "@/components/synth/ReactiveBackground";
 import { initAudio, updateParameter, setTempo, updateSequence, stopPlayback } from "@/lib/audio";
 import type { Step, Pattern } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import * as Tone from "tone";
 
 export default function Tb303() {
   const [initialized, setInitialized] = useState(false);
@@ -31,6 +32,9 @@ export default function Tb303() {
 
     setIsInitializing(true);
     try {
+      // First try to get audio context permission
+      await Tone.start();
+      // Then initialize our audio chain
       await initAudio();
       setInitialized(true);
       toast({
@@ -41,7 +45,7 @@ export default function Tb303() {
       console.error("Failed to initialize audio:", error);
       toast({
         title: "Initialization failed",
-        description: "Please refresh the page and try again",
+        description: "Please make sure you're using a modern browser and allow audio access when prompted",
         variant: "destructive",
       });
     } finally {
