@@ -42,7 +42,8 @@ export async function initAudio() {
 
     reverb = new Tone.Reverb({
       decay: 2,
-      wet: 0.2
+      wet: 0.2,
+      preDelay: 0.01 // Minimum preDelay to avoid glitches
     });
 
     // Initialize pitchShift with better settings for TB-303 style sounds
@@ -152,17 +153,23 @@ export function updateParameter(param: string, value: number) {
       delay.feedback.value = safeValue * 0.85;
       break;
     case "reverbDecay":
-      reverb.decay = safeValue * 5;
+      // Ensure minimum reverb decay time
+      const reverbDecayTime = Math.max(0.1, safeValue * 5);
+      reverb.decay = reverbDecayTime;
       break;
     case "pitch":
       const pitchValue = (safeValue * 24) - 12;
       pitchShift.pitch = pitchValue;
       break;
     case "chorusDepth":
-      chorus.depth = safeValue;
+      // Ensure minimum chorus depth
+      const chorusDepthValue = Math.max(0.01, safeValue);
+      chorus.depth = chorusDepthValue;
       break;
     case "chorusFreq":
-      chorus.frequency.value = safeValue * 4;
+      // Ensure minimum chorus frequency
+      const chorusFreq = Math.max(0.01, safeValue * 4);
+      chorus.frequency.value = chorusFreq;
       break;
   }
 }
