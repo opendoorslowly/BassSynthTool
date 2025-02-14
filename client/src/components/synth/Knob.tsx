@@ -63,22 +63,17 @@ export default function Knob({
     setStartY(e.clientY);
   };
 
-  const getRotationColor = (currentRotation: number) => {
-    const normalized = (currentRotation + 150) / 300;
-    return `hsl(200, 50%, ${50 + normalized * 20}%)`;
-  };
-
   return (
     <div className="flex flex-col items-center gap-2 select-none">
       <motion.div
-        className="w-16 h-16 rounded-full bg-gray-800 cursor-pointer relative shadow-lg"
+        className="w-16 h-16 rounded-full cursor-pointer relative shadow-lg"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onPointerMove={handlePointerMove}
         style={{ 
           rotate: rotation,
-          background: rotation.get() ? getRotationColor(rotation.get()) : undefined,
+          backgroundColor: "#1a1a1a", // Fixed dark color
           touchAction: "none"
         }}
       >
