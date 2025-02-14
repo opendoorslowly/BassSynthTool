@@ -59,8 +59,8 @@ export async function initAudio() {
       frequency: 1.5,
       delayTime: 2.5,
       depth: 0.5,
-      wet: 0.2
-    }).start();
+      wet: 0.5  // Increased wet mix for more noticeable effect
+    }).start();  // Explicitly start the chorus
 
     // TB-303 style filter with higher initial resonance
     filter = new Tone.Filter({
@@ -92,11 +92,11 @@ export async function initAudio() {
       }
     });
 
-    // Connect the audio chain - important to maintain the order for proper resonance behavior
+    // Connect the audio chain with optimized routing for effects
     synth.connect(filter);
-    filter.connect(pitchShift);
-    pitchShift.connect(chorus);
-    chorus.connect(delay);
+    filter.connect(chorus);  // Move chorus before pitch shift for better modulation
+    chorus.connect(pitchShift);
+    pitchShift.connect(delay);
     delay.connect(reverb);
     reverb.connect(analyzer);
     analyzer.toDestination();
@@ -162,12 +162,12 @@ export function updateParameter(param: string, value: number) {
       pitchShift.pitch = pitchValue;
       break;
     case "chorusDepth":
-      // Ensure minimum chorus depth
+      // Ensure minimum chorus depth and apply immediately
       const chorusDepthValue = Math.max(0.01, safeValue);
-      chorus.depth = chorusDepthValue;
+      chorus.depth.value = chorusDepthValue;  // Use .value for immediate update
       break;
     case "chorusFreq":
-      // Ensure minimum chorus frequency
+      // Ensure minimum chorus frequency and apply immediately
       const chorusFreq = Math.max(0.01, safeValue * 4);
       chorus.frequency.value = chorusFreq;
       break;
