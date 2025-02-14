@@ -19,6 +19,11 @@ export function getAudioIntensity(): number {
   return sum / values.length;
 }
 
+export function getWaveformData(): Float32Array {
+  if (!analyzer) return new Float32Array(64);
+  return analyzer.getValue() as Float32Array;
+}
+
 export async function initAudio() {
   if (isInitialized) return;
 

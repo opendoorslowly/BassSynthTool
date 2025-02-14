@@ -12,6 +12,7 @@ import { initAudio, updateParameter, setTempo, updateSequence, stopPlayback } fr
 import type { Step, Pattern } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 import * as Tone from "tone";
+import Waveform from "@/components/synth/Waveform";
 
 export default function Tb303() {
   const [initialized, setInitialized] = useState(false);
@@ -175,6 +176,7 @@ export default function Tb303() {
             </div>
 
             <Transport steps={steps} onClear={handleClear} />
+            <Waveform />
             <Sequencer steps={steps} onStepsChange={setSteps} />
 
             <div className="border-t pt-4">
